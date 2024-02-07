@@ -474,5 +474,76 @@ namespace Il2CppDumper
             }
             return type;
         }
+
+        public int GetInternalId(Il2CppType il2CppType)
+        {
+            switch (il2CppType.type)
+            {
+                case Il2CppTypeEnum.IL2CPP_TYPE_PTR:
+                {
+                    return il2Cpp.typeIndexes[il2Cpp.GetIl2CppType(il2CppType.data.type)];
+                }
+                case Il2CppTypeEnum.IL2CPP_TYPE_CLASS:
+                case Il2CppTypeEnum.IL2CPP_TYPE_VALUETYPE:
+                {
+                    return metadata.typeDefIndexes[GetTypeDefinitionFromIl2CppType(il2CppType)];
+                }
+                case Il2CppTypeEnum.IL2CPP_TYPE_ARRAY:
+                {
+                    var arrayType = il2Cpp.MapVATR<Il2CppArrayType>(il2CppType.data.array);
+                    var elementType = il2Cpp.GetIl2CppType(arrayType.etype);
+                    return il2Cpp.typeIndexes[elementType];
+                }
+                case Il2CppTypeEnum.IL2CPP_TYPE_SZARRAY:
+                {
+                    var elementType = il2Cpp.GetIl2CppType(il2CppType.data.type);
+                    return il2Cpp.typeIndexes[elementType];
+                }
+                case Il2CppTypeEnum.IL2CPP_TYPE_GENERICINST:
+                {
+                    return metadata.typeDefIndexes[GetGenericClassTypeDefinition(il2Cpp.MapVATR<Il2CppGenericClass>(il2CppType.data.generic_class))];
+                }
+                default:
+                {
+                    return -1;
+                }
+            }
+        }
+
+        public ExtendedGenType GetExtendedTypeInformation(Il2CppType il2CppType)
+        {
+            switch (il2CppType.type)
+            {
+                case Il2CppTypeEnum.IL2CPP_TYPE_ARRAY:
+                {
+                    var arrayType = il2Cpp.MapVATR<Il2CppArrayType>(il2CppType.data.array);
+                    return new ExtendedGenType
+                    {
+                        ArrayRank = arrayType.rank,
+                        ArrayLoBoundCount = arrayType.numlobounds,
+                        ArrayLoBounds = arrayType.lobounds,
+                        ArraySizeCount = arrayType.numsizes,
+                        ArraySizes = arrayType.sizes
+                    };
+                }
+                case Il2CppTypeEnum.IL2CPP_TYPE_VAR:
+                case Il2CppTypeEnum.IL2CPP_TYPE_MVAR:
+                {
+                    var param = GetGenericParameteFromIl2CppType(il2CppType);
+                    return new ExtendedGenType { GenericParamName = metadata.GetStringFromIndex(param.nameIndex) };
+                }
+                case Il2CppTypeEnum.IL2CPP_TYPE_GENERICINST:
+                {
+                    var genericClass = il2Cpp.MapVATR<Il2CppGenericClass>(il2CppType.data.generic_class);
+                    var genericInst = il2Cpp.MapVATR<Il2CppGenericInst>(genericClass.context.class_inst);
+                    var pointers = il2Cpp.MapVATR<ulong>(genericInst.type_argv, genericInst.type_argc);
+                    return new ExtendedGenType { GenericTypes = pointers.Select(p => il2Cpp.typeIndexes[il2Cpp.GetIl2CppType(p)]).ToArray() };
+                }
+                default:
+                {
+                    return null;
+                }
+            }
+        }
     }
 }

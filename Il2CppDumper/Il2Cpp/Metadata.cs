@@ -13,6 +13,7 @@ namespace Il2CppDumper
         public Il2CppImageDefinition[] imageDefs;
         public Il2CppAssemblyDefinition[] assemblyDefs;
         public Il2CppTypeDefinition[] typeDefs;
+        public Dictionary<Il2CppTypeDefinition, int> typeDefIndexes;
         public Il2CppMethodDefinition[] methodDefs;
         public Il2CppParameterDefinition[] parameterDefs;
         public Il2CppFieldDefinition[] fieldDefs;
@@ -94,6 +95,8 @@ namespace Il2CppDumper
                 Version = 24.1;
             }
             typeDefs = ReadMetadataClassArray<Il2CppTypeDefinition>(header.typeDefinitionsOffset, header.typeDefinitionsSize);
+            var ind = 0;
+            typeDefIndexes = typeDefs.ToDictionary(d => d, _ => ind++);
             methodDefs = ReadMetadataClassArray<Il2CppMethodDefinition>(header.methodsOffset, header.methodsSize);
             parameterDefs = ReadMetadataClassArray<Il2CppParameterDefinition>(header.parametersOffset, header.parametersSize);
             fieldDefs = ReadMetadataClassArray<Il2CppFieldDefinition>(header.fieldsOffset, header.fieldsSize);

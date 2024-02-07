@@ -17,6 +17,7 @@ namespace Il2CppDumper
         public ulong[] unresolvedVirtualCallPointers;
         private ulong[] fieldOffsets;
         public Il2CppType[] types;
+        public Dictionary<Il2CppType, int> typeIndexes = new();
         private readonly Dictionary<ulong, Il2CppType> typeDic = new();
         public ulong[] metadataUsages;
         private Il2CppGenericMethodFunctionsDefinitions[] genericMethodTable;
@@ -186,6 +187,7 @@ namespace Il2CppDumper
                 types[i] = MapVATR<Il2CppType>(pTypes[i]);
                 types[i].Init(Version);
                 typeDic.Add(pTypes[i], types[i]);
+                typeIndexes[types[i]] = i;
             }
             if (Version >= 24.2)
             {
